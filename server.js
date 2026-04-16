@@ -85,6 +85,48 @@ function wait(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+// Convertir nombre de pais a codigo ISO 3166-1 alpha-2
+function normalizeCountry(input) {
+  if (!input) return "ES";
+  const s = String(input).trim();
+  // Ya es codigo de 2 letras
+  if (/^[A-Za-z]{2}$/.test(s)) return s.toUpperCase();
+  const key = s.toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // quitar tildes
+    .replace(/[^a-z ]/g, "").trim();
+  const map = {
+    "espana": "ES", "spain": "ES", "espania": "ES",
+    "mexico": "MX",
+    "argentina": "AR",
+    "colombia": "CO",
+    "chile": "CL",
+    "peru": "PE",
+    "venezuela": "VE",
+    "ecuador": "EC",
+    "uruguay": "UY",
+    "paraguay": "PY",
+    "bolivia": "BO",
+    "costa rica": "CR",
+    "panama": "PA",
+    "guatemala": "GT",
+    "honduras": "HN",
+    "el salvador": "SV",
+    "nicaragua": "NI",
+    "cuba": "CU",
+    "republica dominicana": "DO", "dominicana": "DO",
+    "puerto rico": "PR",
+    "estados unidos": "US", "united states": "US", "usa": "US", "eeuu": "US", "ee uu": "US",
+    "canada": "CA",
+    "brasil": "BR", "brazil": "BR",
+    "francia": "FR", "france": "FR",
+    "italia": "IT", "italy": "IT",
+    "alemania": "DE", "germany": "DE",
+    "reino unido": "GB", "united kingdom": "GB", "uk": "GB", "inglaterra": "GB",
+    "portugal": "PT",
+  };
+  return map[key] || "ES"; // fallback a ES si no se reconoce
+}
+
 function ghlError(err) {
   if (err.response) return `Error ${err.response.status}: ${JSON.stringify(err.response.data)}`;
   return err.message;
@@ -327,7 +369,7 @@ async function runJob(job) {
       address: empresa.direccion || "",
       city: empresa.ciudad || "",
       postalCode: empresa.codigo_postal || "",
-      country: empresa.pais || "ES",
+      country: normalizeCountry(empresa.pais),
       timezone: data.timezone || "Europe/Madrid",
       snapshotId: s.GHL_SNAPSHOT_ID,
     });
