@@ -41,7 +41,6 @@
   <div class="text-center mb-8">
     <h1 class="text-2xl font-bold text-gray-800">Onboarding GHL</h1>
     <p class="text-gray-500 mt-1">Trainingym</p>
-    <button type="button" id="btn-preload" class="mt-3 px-4 py-1.5 bg-amber-500 text-white text-xs rounded-lg hover:bg-amber-600">Cargar datos de prueba</button>
   </div>
 
   <div class="mb-8">
@@ -1531,81 +1530,6 @@ function submitForm() {
 
 document.getElementById("progress-close").addEventListener("click", function() {
   document.getElementById("progress-modal").classList.add("hidden");
-});
-
-// ============================================================
-// PRECARGA DE DATOS DE PRUEBA (TobiasGym)
-// ============================================================
-
-document.getElementById("btn-preload").addEventListener("click", function() {
-  localStorage.removeItem(STORAGE_KEY);
-
-  state.empresa = {
-    nombre_fiscal: "TobiasGym",
-    email: "tobiasfabian.024@gmail.com",
-    direccion: "General Paz 326",
-    ciudad: "Villa Maria",
-    telefono: "+543534828168",
-    pais: "Argentina",
-    codigo_postal: "5900",
-    identificador_fiscal: "b123123123"
-  };
-
-  sedeCounter = 3;
-  state.sedes = [
-    {
-      id: "sede_1", nombre: "SEDE CENTRO",
-      servicios: { fitness: true, actividades_dirigidas: false, adicionales: ["PILETA"] },
-      horario: {
-        lunes: { apertura: "", cierre: "", cerrado: true },
-        martes: { apertura: "08:00", cierre: "18:00", cerrado: false },
-        miercoles: { apertura: "08:00", cierre: "18:00", cerrado: false },
-        jueves: { apertura: "08:00", cierre: "18:00", cerrado: false },
-        viernes: { apertura: "", cierre: "", cerrado: true },
-        sabado: { apertura: "08:00", cierre: "18:00", cerrado: false },
-        domingo: { apertura: "08:00", cierre: "18:00", cerrado: false }
-      }
-    },
-    {
-      id: "sede_2", nombre: "SEDE NORTE",
-      servicios: { fitness: true, actividades_dirigidas: false, adicionales: [] },
-      horario: {
-        lunes: { apertura: "08:00", cierre: "18:00", cerrado: false },
-        martes: { apertura: "", cierre: "", cerrado: true },
-        miercoles: { apertura: "08:00", cierre: "19:00", cerrado: false },
-        jueves: { apertura: "08:00", cierre: "", cerrado: false },
-        viernes: { apertura: "", cierre: "", cerrado: false },
-        sabado: { apertura: "", cierre: "", cerrado: true },
-        domingo: { apertura: "", cierre: "", cerrado: true }
-      }
-    }
-  ];
-
-  state.empleados = [
-    {
-      id: "emp_1", nombre: "Francisco", apellido: "Borra",
-      email: "borra@gmail.com", telefono: "+543534828169",
-      pais: "Argentina", cargo: "Entrenador", sede_id: "sede_1",
-      horario: { tipo: "fijo", fijo: "Lunes a Viernes 9:00-18:00", franjas: {} }
-    },
-    {
-      id: "emp_2", nombre: "Juan", apellido: "Alonzo",
-      email: "RojasAlonzo@gmail.com", telefono: "+543534828154",
-      pais: "Argentina", cargo: "Entrenador", sede_id: "sede_1",
-      horario: { tipo: "fijo", fijo: "Lunes a Viernes 9:00-18:00", franjas: {} }
-    }
-  ];
-
-  state.tarifas = [];
-  state.urls = [];
-  state.procesos_comerciales = [];
-  state.kpis = [];
-
-  // Re-render paso actual
-  var step1 = document.getElementById("step1-content");
-  if (step1) { step1.dataset.rendered = ""; step1.textContent = ""; }
-  showStep(currentStep);
-  alert("Datos de prueba cargados (TobiasGym). Navega los 9 pasos.");
 });
 
 // ============================================================
