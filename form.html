@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Onboarding GHL - Trainingym</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  .step { display: none; }
+  .step.active { display: block; }
+  .fade-in { animation: fadeIn 0.3s ease-in; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  input:invalid:not(:placeholder-shown) { border-color: #ef4444; }
+  .repeat-item { border-left: 3px solid #6366f1; }
+  .accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+  }
+  .accordion-content.open {
+    max-height: 2000px;
+    transition: max-height 0.5s ease-in;
+  }
+  .drag-over {
+    border-color: #6366f1 !important;
+    background-color: #eef2ff !important;
+  }
+  .field-error {
+    border-color: #ef4444 !important;
+  }
+  .error-msg {
+    color: #ef4444;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+  }
+</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<div class="max-w-2xl mx-auto px-4 py-8">
+  <div class="text-center mb-8">
+    <h1 class="text-2xl font-bold text-gray-800">Onboarding GHL</h1>
+    <p class="text-gray-500 mt-1">Trainingym</p>
+    <button type="button" id="btn-preload" class="mt-3 px-4 py-1.5 bg-amber-500 text-white text-xs rounded-lg hover:bg-amber-600">Cargar datos de prueba</button>
+  </div>
+
+  <div class="mb-8">
+    <div class="flex justify-between text-xs text-gray-500 mb-1">
+      <span id="progress-label">Paso 1 de 9</span>
+      <span id="progress-pct">11%</span>
+    </div>
+    <div class="w-full bg-gray-200 rounded-full h-2">
+      <div id="progress-bar" class="bg-indigo-600 h-2 rounded-full transition-all duration-500" style="width:11%"></div>
+    </div>
+  </div>
+
+  <form id="onb-form" novalidate>
+
+    <div class="step active fade-in" data-step="1">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-indigo-700 mb-1">Empresa</h2>
+        <p class="text-sm text-gray-500 mb-6">Datos de identificacion de la empresa.</p>
+        <div class="space-y-4" id="step1-content"></div>
+      </div>
+    </div>
+
+    <div class="step fade-in" data-step="2">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-indigo-700 mb-1">Sedes</h2>
+        <p class="text-sm text-gray-500 mb-6">Centros deportivos de la empresa.</p>
+        <div id="step2-content"></div>
+      </div>
+    </div>
+
+    <div class="step fade-in" data-step="3">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-indigo-700 mb-1">Servicios</h2>
+        <p class="text-sm text-gray-500 mb-6">Servicios disponibles en cada sede.</p>
+        <div id="step3-content"></div>
+      </div>
+    </div>
+
+    <div class="step fade-in" data-step="4">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-indigo-700 mb-1">Empleados</h2>
+        <p class="text-sm text-gray-500 mb-6">Personal del equipo de trabajo.</p>
+        <div id="step4-content"></div>
+      </div>
+    </div>
+
+    <div class="step fade-in" data-step="5">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-indigo-700 mb-1">Horarios empleados</h2>
+        <p class="text-sm text-gray-500 mb-6">Disponibilidad horaria de cada empleado.</p>
+        <div id="step5-content"></div>
+      </div>
+    </div>
+
+    <div class="step fade-in" data-step="6">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-indigo-700 mb-1">Horarios sede</h2>
+        <p class="text-sm text-gray-500 mb-6">Horario de apertura de cada sede.</p>
+        <div id="step6-content"></div>
+      </div>
+    </div>
+
+    <div class="step fade-in" data-step="7">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-indigo-700 mb-1">Tarifas</h2>
+        <p class="text-sm text-gray-500 mb-6">Planes y precios de los servicios.</p>
+        <div id="step7-content"></div>
+      </div>
+    </div>
+
+    <div class="step fade-in" data-step="8">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-indigo-700 mb-1">URLs/Procesos</h2>
+        <p class="text-sm text-gray-500 mb-6">Enlaces y procesos comerciales clave.</p>
+        <div id="step8-content"></div>
+      </div>
+    </div>
+
+    <div class="step fade-in" data-step="9">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h2 class="text-lg font-semibold text-indigo-700 mb-1">KPIs/Revision</h2>
+        <p class="text-sm text-gray-500 mb-6">Indicadores clave y revision final antes de enviar.</p>
+        <div id="step9-content"></div>
+      </div>
+    </div>
+
+    <div class="flex justify-between mt-6">
+      <button type="button" id="btn-prev" class="hidden px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100">Anterior</button>
+      <div class="flex-1"></div>
+      <button type="button" id="btn-next" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Siguiente</button>
+    </div>
+  </form>
+
+  <div id="success-msg" class="hidden text-center py-12">
+    <div class="text-5xl mb-4">&#10003;</div>
+    <h2 class="text-2xl font-bold text-gray-800 mb-2">Onboarding enviado</h2>
+    <p class="text-gray-500">Hemos recibido la informacion. Nos pondremos en contacto pronto.</p>
+  </div>
+
+  <div id="error-msg" class="hidden bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 mt-4">
+    <p id="error-text"></p>
+  </div>
+
+  <div class="text-center mt-6">
+    <a href="#" class="text-xs text-gray-400 hover:text-gray-600">Necesitas ayuda? Contacta con soporte</a>
+  </div>
+</div>
+
+<!-- Modal: progreso en tiempo real -->
+<div id="progress-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+    <div class="flex justify-between items-center p-4 border-b">
+      <div>
+        <h3 id="progress-title" class="text-lg font-bold text-gray-800">Creando sub-cuenta en GoHighLevel</h3>
+        <p id="progress-subtitle" class="text-xs text-gray-500 mt-1">Este proceso puede tardar hasta 3 minutos.</p>
+      </div>
+      <button type="button" id="progress-close" class="hidden text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+    </div>
+    <div class="p-4 overflow-y-auto flex-1">
+      <div id="progress-result" class="hidden mb-4"></div>
+      <div id="progress-log" class="bg-gray-900 rounded-lg p-3 text-xs font-mono text-green-400 max-h-96 overflow-y-auto"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONSTANTS & CONFIG
+// ============================================================
+var TOTAL_STEPS = 9;
+var STORAGE_KEY = 'onb-ghl-draft';
+var LIMITS = {
+  sedes: 20,
+  empleados: 100,
+  tarifas: 50,
+  urls: 20,
+  procesos: 20,
+  kpis: 5
+};
+
+// ============================================================
+// UTILITIES
+// ============================================================
+
+function uuid() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0;
+    var v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function el(tag, attrs, children) {
+  var node = document.createElement(tag);
+  if (attrs) {
+    Object.keys(attrs).forEach(function(k) {
+      if (k === 'textContent') {
+        node.textContent = attrs[k];
+      } else if (k === 'className') {
+        node.className = attrs[k];
+      } else {
+        node.setAttribute(k, attrs[k]);
+      }
+    });
+  }
+  if (children) {
+    children.forEach(function(c) { if (c) node.appendChild(c); });
+  }
+  return node;
+}
+
+function inp(attrs) {
+  var node = document.createElement('input');
+  if (attrs) {
+    Object.keys(attrs).forEach(function(k) {
+      if (k === 'className') node.className = attrs[k];
+      else if (k === 'required') node.required = true;
+      else node.setAttribute(k, attrs[k]);
+    });
+  }
+  return node;
+}
+
+function labeledInput(labelText, inputAttrs) {
+  var wrapper = document.createElement('div');
+  var lbl = document.createElement('label');
+  lbl.className = 'block text-sm font-medium text-gray-700 mb-1';
+  lbl.textContent = labelText;
+  wrapper.appendChild(lbl);
+  wrapper.appendChild(inp(inputAttrs));
+  return wrapper;
+}
+
+// ============================================================
+// STATE
+// ============================================================
+
+var DIAS = ['lunes','martes','miercoles','jueves','viernes','sabado','domingo'];
+var DIAS_LABEL = ['Lunes','Martes','Miercoles','Jueves','Viernes','Sabado','Domingo'];
+var sedeCounter = 1;
+
+function defaultHorarioSede() {
+  var h = {};
+  DIAS.forEach(function(d) { h[d] = { apertura: '', cierre: '', cerrado: false }; });
+  return h;
+}
+
+function defaultHorarioEmpleado() {
+  var franjas = {};
+  DIAS.forEach(function(d) { franjas[d] = []; });
+  return { tipo: 'fijo', fijo: '', franjas: franjas };
+}
+
+function newSede() {
+  var id = 'sede_' + (sedeCounter++);
+  return { id: id, nombre: '', servicios: { fitness: false, actividades_dirigidas: false, adicionales: [] }, horario: defaultHorarioSede() };
+}
+
+function newState() {
+  return {
+    submission_id: uuid(),
+    empresa: {
+      nombre_fiscal: '',
+      email: '',
+      direccion: '',
+      ciudad: '',
+      telefono: '',
+      pais: '',
+      codigo_postal: '',
+      identificador_fiscal: ''
+    },
+    sedes: [newSede()],
+    empleados: [],
+    tarifas: [],
+    urls: [],
+    procesos_comerciales: [],
+    kpis: []
+  };
+}
+
+var currentStep = 1;
+var state = newState();
+
+// ============================================================
+// STORAGE
+// ============================================================
+
+function saveToStorage() {
+  try {
+    var draft = JSON.parse(JSON.stringify(state));
+    if (draft.kpis && Array.isArray(draft.kpis)) {
+      draft.kpis.forEach(function(k) {
+        if (k.base64) delete k.base64;
+      });
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+  } catch(e) {
+    console.warn('saveToStorage error:', e);
+  }
+}
+
+function restoreFromStorage() {
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) { state = newState(); return; }
+    var saved = JSON.parse(raw);
+    if (!saved || !saved.submission_id) { state = newState(); return; }
+    var continuar = confirm(
+      'Hay un borrador guardado. Deseas continuar donde lo dejaste?\n\nAcepta = Continuar\nCancela = Empezar de nuevo'
+    );
+    if (continuar) {
+      state = saved;
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+      state = newState();
+    }
+  } catch(e) {
+    console.warn('restoreFromStorage error:', e);
+    state = newState();
+  }
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+
+function showStep(n) {
+  document.querySelectorAll('.step').forEach(function(s) {
+    s.classList.remove('active');
+  });
+  var stepEl = document.querySelector('[data-step="' + n + '"]');
+  if (stepEl) {
+    stepEl.classList.add('active');
+    stepEl.classList.add('fade-in');
+  }
+
+  var pct = Math.round((n / TOTAL_STEPS) * 100);
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.getElementById('progress-label').textContent = 'Paso ' + n + ' de ' + TOTAL_STEPS;
+
+  document.getElementById('btn-prev').classList.toggle('hidden', n === 1);
+
+  var btnNext = document.getElementById('btn-next');
+  btnNext.textContent = n === TOTAL_STEPS ? 'Enviar' : 'Siguiente';
+
+  renderStep(n);
+  saveToStorage();
+  window.scrollTo(0, 0);
+}
+
+document.getElementById('btn-next').addEventListener('click', function() {
+  if (!validateStep(currentStep)) return;
+  if (currentStep < TOTAL_STEPS) {
+    currentStep++;
+    showStep(currentStep);
+  } else {
+    submitForm();
+  }
+});
+
+document.getElementById('btn-prev').addEventListener('click', function() {
+  if (currentStep > 1) {
+    currentStep--;
+    showStep(currentStep);
+  }
+});
+
+// ============================================================
+// VALIDATION
+// ============================================================
+
+var RE_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+var RE_PHONE = /^\+\d{7,15}$/;
+var RE_URL   = /^https?:\/\/.+/;
+
+function clearFieldError(inputEl) {
+  inputEl.classList.remove('field-error');
+  inputEl.style.borderColor = '';
+  var errEl = inputEl.parentNode.querySelector('.error-msg');
+  if (errEl) errEl.remove();
+}
+
+function setFieldError(inputEl, msg) {
+  inputEl.classList.add('field-error');
+  inputEl.style.borderColor = '#ef4444';
+  var errEl = inputEl.parentNode.querySelector('.error-msg');
+  if (!errEl) {
+    errEl = document.createElement('p');
+    errEl.className = 'error-msg';
+    inputEl.parentNode.appendChild(errEl);
+  }
+  errEl.textContent = msg;
+}
+
+function validateStep(n) {
+  var stepEl = document.querySelector('[data-step="' + n + '"]');
+  if (!stepEl) return true;
+
+  var inputs = stepEl.querySelectorAll('[required]');
+  var firstInvalid = null;
+  var valid = true;
+
+  inputs.forEach(function(inputEl) { clearFieldError(inputEl); });
+
+  inputs.forEach(function(inputEl) {
+    var val = inputEl.value.trim();
+    var inpType = (inputEl.getAttribute('type') || 'text').toLowerCase();
+    var validate = inputEl.getAttribute('data-validate') || '';
+
+    if (!val) {
+      setFieldError(inputEl, 'Este campo es obligatorio.');
+      if (!firstInvalid) firstInvalid = inputEl;
+      valid = false;
+      return;
+    }
+
+    if (inpType === 'email' || validate === 'email') {
+      if (!RE_EMAIL.test(val)) {
+        setFieldError(inputEl, 'Introduce un email valido (ej: nombre@dominio.com).');
+        if (!firstInvalid) firstInvalid = inputEl;
+        valid = false;
+        return;
+      }
+    }
+
+    if (inpType === 'tel' || validate === 'phone') {
+      if (!RE_PHONE.test(val)) {
+        setFieldError(inputEl, 'Formato: +34612345678 (+ seguido de 7-15 digitos).');
+        if (!firstInvalid) firstInvalid = inputEl;
+        valid = false;
+        return;
+      }
+    }
+
+    if (inpType === 'url' || validate === 'url') {
+      if (!RE_URL.test(val)) {
+        setFieldError(inputEl, 'La URL debe empezar por http:// o https://');
+        if (!firstInvalid) firstInvalid = inputEl;
+        valid = false;
+        return;
+      }
+    }
+  });
+
+  if (firstInvalid) firstInvalid.focus();
+  return valid;
+}
+
+// ============================================================
+// RENDER DISPATCHER
+// ============================================================
+
+function renderStep(n) {
+  switch (n) {
+    case 1: renderStep1(); break;
+    case 2: renderStep2(); break;
+    case 3: renderStep3(); break;
+    case 4: renderStep4(); break;
+    case 5: renderStep5(); break;
+    case 6: renderStep6(); break;
+    case 7: renderStep7(); break;
+    case 8: renderStep8(); break;
+    case 9: renderStep9(); break;
+  }
+}
+
+// ============================================================
+// STEP RENDERERS
+// ============================================================
+
+var INPUT_CLS = 'w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500';
+
+function bindStateInput(inputEl, obj, key) {
+  inputEl.value = obj[key] || '';
+  inputEl.addEventListener('input', function() { obj[key] = inputEl.value; });
+}
+
+function renderStep1() {
+  var c = document.getElementById('step1-content');
+  if (c.dataset.rendered) return;
+  c.dataset.rendered = '1';
+
+  var empresa = state.empresa;
+  c.textContent = '';
+
+  var iNombreFiscal = makeInput('empresa_nombre_fiscal', 'text', 'Ej: Trainingym Solutions SL', true, { maxlength: '100' });
+  bindStateInput(iNombreFiscal, empresa, 'nombre_fiscal');
+  c.appendChild(makeRow('Nombre fiscal *', iNombreFiscal));
+
+  var iEmail = makeInput('empresa_email', 'email', 'info@empresa.com', true, { 'data-validate': 'email' });
+  bindStateInput(iEmail, empresa, 'email');
+  c.appendChild(makeRow('Email corporativo *', iEmail));
+
+  var iDir = makeInput('empresa_direccion', 'text', 'Calle, numero, piso', true, { maxlength: '200' });
+  bindStateInput(iDir, empresa, 'direccion');
+  c.appendChild(makeRow('Direccion *', iDir));
+
+  var grid1 = document.createElement('div');
+  grid1.className = 'grid grid-cols-2 gap-4';
+  var iCiudad = makeInput('empresa_ciudad', 'text', 'Madrid', true, { maxlength: '100' });
+  bindStateInput(iCiudad, empresa, 'ciudad');
+  grid1.appendChild(makeRow('Ciudad *', iCiudad));
+  var iCP = makeInput('empresa_codigo_postal', 'text', '28001', true, { maxlength: '10' });
+  bindStateInput(iCP, empresa, 'codigo_postal');
+  grid1.appendChild(makeRow('Codigo postal *', iCP));
+  c.appendChild(grid1);
+
+  var grid2 = document.createElement('div');
+  grid2.className = 'grid grid-cols-2 gap-4';
+  var iTel = makeInput('empresa_telefono', 'tel', '+34612345678', true, { 'data-validate': 'phone' });
+  bindStateInput(iTel, empresa, 'telefono');
+  grid2.appendChild(makeRow('Telefono *', iTel));
+  var iPais = makeInput('empresa_pais', 'text', 'Espana', true, { maxlength: '50' });
+  bindStateInput(iPais, empresa, 'pais');
+  grid2.appendChild(makeRow('Pais *', iPais));
+  c.appendChild(grid2);
+
+  var iCIF = makeInput('empresa_identificador_fiscal', 'text', 'B12345678', true, { maxlength: '20' });
+  bindStateInput(iCIF, empresa, 'identificador_fiscal');
+  c.appendChild(makeRow('Identificador fiscal (CIF/NIF) *', iCIF));
+}
+
+// ============================================================
+// SHARED HELPERS
+// ============================================================
+
+function makeRow(labelText, inputEl) {
+  var d = document.createElement('div');
+  var lbl = document.createElement('label');
+  lbl.className = 'block text-sm font-medium text-gray-700 mb-1';
+  lbl.textContent = labelText;
+  d.appendChild(lbl);
+  if (inputEl) d.appendChild(inputEl);
+  return d;
+}
+
+function makeInput(id, type, placeholder, required, extraAttrs) {
+  var i = document.createElement('input');
+  i.type = type || 'text';
+  if (id) i.id = id;
+  i.placeholder = placeholder || '';
+  i.className = INPUT_CLS;
+  if (required) i.required = true;
+  if (extraAttrs) {
+    Object.keys(extraAttrs).forEach(function(k) { i.setAttribute(k, extraAttrs[k]); });
+  }
+  return i;
+}
+
+function makeBtn(text, cls, onClick) {
+  var b = document.createElement('button');
+  b.type = 'button';
+  b.className = cls;
+  b.textContent = text;
+  b.addEventListener('click', onClick);
+  return b;
+}
+
+// ============================================================
+// STEP 2 - SEDES
+// ============================================================
+
+function renderStep2() {
+  var c = document.getElementById('step2-content');
+  c.textContent = '';
+
+  state.sedes.forEach(function(sede, i) {
+    var card = document.createElement('div');
+    card.className = 'repeat-item bg-gray-50 rounded-lg p-4 mb-4 space-y-3';
+
+    var header = document.createElement('div');
+    header.className = 'flex justify-between items-center mb-2';
+    var label = document.createElement('span');
+    label.className = 'text-sm font-semibold text-indigo-700';
+    label.textContent = 'Sede ' + (i + 1);
+    header.appendChild(label);
+
+    if (state.sedes.length > 1) {
+      var btnDel = makeBtn('Eliminar', 'text-xs text-red-500 hover:text-red-700', function() {
+        removeSede(i);
+      });
+      header.appendChild(btnDel);
+    }
+    card.appendChild(header);
+
+    var iNombre = makeInput(null, 'text', 'Nombre de la sede', true, { maxlength: '100' });
+    bindStateInput(iNombre, sede, 'nombre');
+    card.appendChild(makeRow('Nombre *', iNombre));
+
+    c.appendChild(card);
+  });
+
+  if (state.sedes.length < LIMITS.sedes) {
+    var btnAdd = makeBtn('+ Anadir sede', 'mt-2 px-4 py-2 border border-indigo-400 text-indigo-600 rounded-lg text-sm hover:bg-indigo-50', function() {
+      addSede();
+    });
+    c.appendChild(btnAdd);
+  }
+}
+
+function addSede() {
+  state.sedes.push(newSede());
+  renderStep2();
+}
+
+function removeSede(i) {
+  var sedeId = state.sedes[i].id;
+  var depCount = state.empleados.filter(function(e) { return e.sede_id === sedeId; }).length;
+  var msg = 'Eliminar la sede "' + state.sedes[i].nombre + '"?';
+  if (depCount > 0) {
+    msg += '\n\nEsto tambien eliminara ' + depCount + ' empleado(s) asignado(s) a esta sede.';
+  }
+  if (!confirm(msg)) return;
+  state.empleados = state.empleados.filter(function(e) { return e.sede_id !== sedeId; });
+  state.sedes.splice(i, 1);
+  renderStep2();
+}
+
+// ============================================================
+// STEP 3 - SERVICIOS POR SEDE
+// ============================================================
+
+function renderStep3() {
+  var c = document.getElementById('step3-content');
+  c.textContent = '';
+
+  state.sedes.forEach(function(sede, i) {
+    var section = document.createElement('div');
+    section.className = 'mb-3 border border-gray-200 rounded-lg overflow-hidden';
+
+    var accId = 'acc3-' + i;
+
+    var header = document.createElement('button');
+    header.type = 'button';
+    header.className = 'w-full flex justify-between items-center px-4 py-3 bg-gray-50 hover:bg-gray-100 text-left';
+    var headerTitle = document.createElement('span');
+    headerTitle.className = 'text-sm font-semibold text-gray-700';
+    headerTitle.textContent = 'Servicios — ' + (sede.nombre || 'Sede ' + (i + 1));
+    var chevron = document.createElement('span');
+    chevron.className = 'text-gray-400 text-xs';
+    chevron.textContent = '\u25BC';
+    header.appendChild(headerTitle);
+    header.appendChild(chevron);
+    header.addEventListener('click', function() { toggleAccordion(accId); });
+    section.appendChild(header);
+
+    var content = document.createElement('div');
+    content.id = accId;
+    content.className = 'accordion-content open px-4 pb-4 pt-3 space-y-3';
+
+    var rowFitness = document.createElement('label');
+    rowFitness.className = 'flex items-center gap-2 text-sm text-gray-700 cursor-pointer';
+    var cbFitness = document.createElement('input');
+    cbFitness.type = 'checkbox';
+    cbFitness.className = 'rounded border-gray-300 text-indigo-600';
+    cbFitness.checked = !!sede.servicios.fitness;
+    cbFitness.addEventListener('change', function() { sede.servicios.fitness = cbFitness.checked; });
+    var spanFitness = document.createElement('span');
+    spanFitness.textContent = 'Fitness / musculacion';
+    rowFitness.appendChild(cbFitness);
+    rowFitness.appendChild(spanFitness);
+    content.appendChild(rowFitness);
+
+    var rowAct = document.createElement('label');
+    rowAct.className = 'flex items-center gap-2 text-sm text-gray-700 cursor-pointer';
+    var cbAct = document.createElement('input');
+    cbAct.type = 'checkbox';
+    cbAct.className = 'rounded border-gray-300 text-indigo-600';
+    cbAct.checked = !!sede.servicios.actividades_dirigidas;
+    cbAct.addEventListener('change', function() { sede.servicios.actividades_dirigidas = cbAct.checked; });
+    var spanAct = document.createElement('span');
+    spanAct.textContent = 'Actividades dirigidas';
+    rowAct.appendChild(cbAct);
+    rowAct.appendChild(spanAct);
+    content.appendChild(rowAct);
+
+    var adicDiv = document.createElement('div');
+    adicDiv.className = 'space-y-2 mt-2';
+
+    function renderAdicionales() {
+      adicDiv.textContent = '';
+      sede.servicios.adicionales.forEach(function(svc, j) {
+        var row = document.createElement('div');
+        row.className = 'flex items-center gap-2';
+        var iSvc = makeInput(null, 'text', 'Nombre del servicio', false, { maxlength: '80' });
+        iSvc.value = svc;
+        iSvc.addEventListener('input', function() { sede.servicios.adicionales[j] = iSvc.value; });
+        var btnDel = makeBtn('\u2715', 'text-gray-400 hover:text-red-500 text-sm flex-shrink-0', function() {
+          sede.servicios.adicionales.splice(j, 1);
+          renderAdicionales();
+        });
+        row.appendChild(iSvc);
+        row.appendChild(btnDel);
+        adicDiv.appendChild(row);
+      });
+    }
+    renderAdicionales();
+    content.appendChild(adicDiv);
+
+    var btnAddSvc = makeBtn('+ Anadir servicio', 'mt-2 text-xs px-3 py-1 border border-gray-300 text-gray-600 rounded hover:bg-gray-50', function() {
+      sede.servicios.adicionales.push('');
+      renderAdicionales();
+    });
+    content.appendChild(btnAddSvc);
+
+    section.appendChild(content);
+    c.appendChild(section);
+  });
+}
+
+function toggleAccordion(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.toggle('open');
+}
+
+// ============================================================
+// STEP 4 - EMPLEADOS
+// ============================================================
+
+function renderStep4() {
+  var c = document.getElementById('step4-content');
+  c.textContent = '';
+
+  if (state.empleados.length === 0) {
+    var emptyMsg = document.createElement('p');
+    emptyMsg.className = 'text-sm text-gray-400 italic mb-4';
+    emptyMsg.textContent = 'No hay empleados anadidos. Pulsa el boton para agregar.';
+    c.appendChild(emptyMsg);
+  }
+
+  state.empleados.forEach(function(emp, i) {
+    var card = document.createElement('div');
+    card.className = 'repeat-item bg-gray-50 rounded-lg p-4 mb-4 space-y-3';
+
+    var header = document.createElement('div');
+    header.className = 'flex justify-between items-center mb-1';
+    var lbl = document.createElement('span');
+    lbl.className = 'text-sm font-semibold text-indigo-700';
+    lbl.textContent = 'Empleado ' + (i + 1);
+    header.appendChild(lbl);
+    var btnDel = makeBtn('Eliminar', 'text-xs text-red-500 hover:text-red-700', function() {
+      removeEmpleado(i);
+    });
+    header.appendChild(btnDel);
+    card.appendChild(header);
+
+    var grid1 = document.createElement('div');
+    grid1.className = 'grid grid-cols-2 gap-3';
+    var iNombre = makeInput(null, 'text', 'Nombre', true, { maxlength: '80' });
+    bindStateInput(iNombre, emp, 'nombre');
+    grid1.appendChild(makeRow('Nombre *', iNombre));
+    var iApellido = makeInput(null, 'text', 'Apellido', true, { maxlength: '80' });
+    bindStateInput(iApellido, emp, 'apellido');
+    grid1.appendChild(makeRow('Apellido *', iApellido));
+    card.appendChild(grid1);
+
+    var grid2 = document.createElement('div');
+    grid2.className = 'grid grid-cols-2 gap-3';
+    var iEmail = makeInput(null, 'email', 'correo@empresa.com', true, { 'data-validate': 'email' });
+    bindStateInput(iEmail, emp, 'email');
+    grid2.appendChild(makeRow('Email *', iEmail));
+    var iTel = makeInput(null, 'tel', '+34612345678', true, { 'data-validate': 'phone' });
+    bindStateInput(iTel, emp, 'telefono');
+    grid2.appendChild(makeRow('Telefono *', iTel));
+    card.appendChild(grid2);
+
+    var grid3 = document.createElement('div');
+    grid3.className = 'grid grid-cols-3 gap-3';
+
+    var iPais = makeInput(null, 'text', 'Espana', true, { maxlength: '50' });
+    bindStateInput(iPais, emp, 'pais');
+    grid3.appendChild(makeRow('Pais *', iPais));
+
+    var iCargo = makeInput(null, 'text', 'Entrenador', true, { maxlength: '80' });
+    bindStateInput(iCargo, emp, 'cargo');
+    grid3.appendChild(makeRow('Cargo *', iCargo));
+
+    var sedeWrap = document.createElement('div');
+    var sedeLbl = document.createElement('label');
+    sedeLbl.className = 'block text-sm font-medium text-gray-700 mb-1';
+    sedeLbl.textContent = 'Sede *';
+    sedeWrap.appendChild(sedeLbl);
+    var sel = document.createElement('select');
+    sel.className = INPUT_CLS;
+    sel.required = true;
+    state.sedes.forEach(function(s) {
+      var opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = s.nombre || ('Sede sin nombre (' + s.id + ')');
+      if (emp.sede_id === s.id) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', function() { emp.sede_id = sel.value; });
+    sedeWrap.appendChild(sel);
+    grid3.appendChild(sedeWrap);
+
+    card.appendChild(grid3);
+    c.appendChild(card);
+  });
+
+  if (state.empleados.length < LIMITS.empleados) {
+    var btnAdd = makeBtn('+ Anadir empleado', 'mt-2 px-4 py-2 border border-indigo-400 text-indigo-600 rounded-lg text-sm hover:bg-indigo-50', function() {
+      addEmpleado();
+    });
+    c.appendChild(btnAdd);
+  }
+}
+
+function addEmpleado() {
+  var firstSedeId = state.sedes.length > 0 ? state.sedes[0].id : '';
+  state.empleados.push({
+    id: 'emp_' + Date.now(),
+    nombre: '',
+    apellido: '',
+    email: '',
+    telefono: '',
+    pais: '',
+    cargo: '',
+    sede_id: firstSedeId,
+    horario: defaultHorarioEmpleado()
+  });
+  renderStep4();
+}
+
+function removeEmpleado(i) {
+  state.empleados.splice(i, 1);
+  renderStep4();
+}
+
+// ============================================================
+// STEP 5 - HORARIOS EMPLEADOS
+// ============================================================
+
+function renderStep5() {
+  var c = document.getElementById('step5-content');
+  c.textContent = '';
+
+  if (state.empleados.length === 0) {
+    var emptyMsg = document.createElement('p');
+    emptyMsg.className = 'text-sm text-gray-400 italic';
+    emptyMsg.textContent = 'No hay empleados. Vuelve al paso anterior para agregar empleados.';
+    c.appendChild(emptyMsg);
+    return;
+  }
+
+  state.empleados.forEach(function(emp, i) {
+    var accId = 'acc5-' + i;
+
+    var section = document.createElement('div');
+    section.className = 'mb-3 border border-gray-200 rounded-lg overflow-hidden';
+
+    var sedeObj = state.sedes.find(function(s) { return s.id === emp.sede_id; });
+    var sedeLabel = sedeObj ? (sedeObj.nombre || 'Sede sin nombre') : 'Sin sede';
+    var empLabel = (emp.nombre || 'Empleado ' + (i + 1)) + (emp.apellido ? ' ' + emp.apellido : '') + ' (' + sedeLabel + ')';
+
+    var header = document.createElement('button');
+    header.type = 'button';
+    header.className = 'w-full flex justify-between items-center px-4 py-3 bg-gray-50 hover:bg-gray-100 text-left';
+    var headerTitle = document.createElement('span');
+    headerTitle.className = 'text-sm font-semibold text-gray-700';
+    headerTitle.textContent = 'Horario — ' + empLabel;
+    var chevron = document.createElement('span');
+    chevron.className = 'text-gray-400 text-xs';
+    chevron.textContent = '\u25BC';
+    header.appendChild(headerTitle);
+    header.appendChild(chevron);
+    header.addEventListener('click', function() { toggleAccordion(accId); });
+    section.appendChild(header);
+
+    var content = document.createElement('div');
+    content.id = accId;
+    content.className = 'accordion-content open px-4 pb-4 pt-3';
+
+    var h = emp.horario;
+    if (!h) { h = defaultHorarioEmpleado(); emp.horario = h; }
+
+    var radioRow = document.createElement('div');
+    radioRow.className = 'flex gap-4 mb-4';
+
+    ['fijo', 'franjas'].forEach(function(tipo) {
+      var lbl = document.createElement('label');
+      lbl.className = 'flex items-center gap-1 text-sm text-gray-700 cursor-pointer';
+      var rb = document.createElement('input');
+      rb.type = 'radio';
+      rb.name = 'horario_tipo_' + i;
+      rb.value = tipo;
+      rb.checked = h.tipo === tipo;
+      rb.addEventListener('change', function() {
+        if (rb.checked) {
+          h.tipo = tipo;
+          renderStep5();
+        }
+      });
+      var span = document.createElement('span');
+      span.textContent = tipo === 'fijo' ? 'Horario fijo' : 'Por franjas';
+      lbl.appendChild(rb);
+      lbl.appendChild(span);
+      radioRow.appendChild(lbl);
+    });
+    content.appendChild(radioRow);
+
+    if (h.tipo === 'fijo') {
+      var iFijo = makeInput(null, 'text', 'Ej: Lunes a Viernes 9:00-18:00', false, { maxlength: '200' });
+      iFijo.className = INPUT_CLS;
+      bindStateInput(iFijo, h, 'fijo');
+      var fijoWrap = makeRow('Descripcion del horario', iFijo);
+      content.appendChild(fijoWrap);
+    } else {
+      if (!h.franjas) { h.franjas = {}; DIAS.forEach(function(d) { h.franjas[d] = []; }); }
+
+      var grid = document.createElement('div');
+      grid.className = 'space-y-3';
+
+      DIAS.forEach(function(dia, di) {
+        var dayLabel = DIAS_LABEL[di];
+        if (!h.franjas[dia]) h.franjas[dia] = [];
+
+        var dayBlock = document.createElement('div');
+        dayBlock.className = 'border border-gray-100 rounded-lg p-3';
+
+        var dayHeader = document.createElement('div');
+        dayHeader.className = 'flex justify-between items-center mb-2';
+        var dayTitle = document.createElement('span');
+        dayTitle.className = 'text-xs font-semibold text-gray-600 uppercase tracking-wide';
+        dayTitle.textContent = dayLabel;
+        dayHeader.appendChild(dayTitle);
+
+        var btnAddFranja = makeBtn('+ Franja', 'text-xs px-2 py-1 border border-gray-300 text-gray-500 rounded hover:bg-gray-50', (function(d) {
+          return function() {
+            h.franjas[d].push({ inicio: '', fin: '' });
+            renderStep5();
+          };
+        })(dia));
+        dayHeader.appendChild(btnAddFranja);
+        dayBlock.appendChild(dayHeader);
+
+        var franjasDiv = document.createElement('div');
+        franjasDiv.className = 'space-y-2';
+
+        h.franjas[dia].forEach(function(franja, fi) {
+          var row = document.createElement('div');
+          row.className = 'flex items-center gap-2';
+
+          var iInicio = document.createElement('input');
+          iInicio.type = 'time';
+          iInicio.className = 'border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-indigo-500';
+          iInicio.value = franja.inicio || '';
+          iInicio.addEventListener('change', function() { franja.inicio = iInicio.value; });
+
+          var sep = document.createElement('span');
+          sep.className = 'text-gray-400 text-sm';
+          sep.textContent = '\u2014';
+
+          var iFin = document.createElement('input');
+          iFin.type = 'time';
+          iFin.className = 'border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-indigo-500';
+          iFin.value = franja.fin || '';
+          iFin.addEventListener('change', function() { franja.fin = iFin.value; });
+
+          var btnDelFranja = makeBtn('\u2715', 'text-gray-400 hover:text-red-500 text-sm', (function(d, f) {
+            return function() {
+              h.franjas[d].splice(f, 1);
+              renderStep5();
+            };
+          })(dia, fi));
+
+          row.appendChild(iInicio);
+          row.appendChild(sep);
+          row.appendChild(iFin);
+          row.appendChild(btnDelFranja);
+          franjasDiv.appendChild(row);
+        });
+
+        if (h.franjas[dia].length === 0) {
+          var noFranja = document.createElement('p');
+          noFranja.className = 'text-xs text-gray-400 italic';
+          noFranja.textContent = 'Sin franjas (libre / no trabaja)';
+          franjasDiv.appendChild(noFranja);
+        }
+
+        dayBlock.appendChild(franjasDiv);
+        grid.appendChild(dayBlock);
+      });
+
+      content.appendChild(grid);
+    }
+
+    section.appendChild(content);
+    c.appendChild(section);
+  });
+}
+
+// ============================================================
+// STEP 6 - HORARIOS SEDE
+// ============================================================
+
+function renderStep6() {
+  var c = document.getElementById('step6-content');
+  c.textContent = '';
+
+  state.sedes.forEach(function(sede, i) {
+    var accId = 'acc6-' + i;
+
+    var section = document.createElement('div');
+    section.className = 'mb-3 border border-gray-200 rounded-lg overflow-hidden';
+
+    if (!sede.horario) sede.horario = defaultHorarioSede();
+
+    var header = document.createElement('button');
+    header.type = 'button';
+    header.className = 'w-full flex justify-between items-center px-4 py-3 bg-gray-50 hover:bg-gray-100 text-left';
+    var headerTitle = document.createElement('span');
+    headerTitle.className = 'text-sm font-semibold text-gray-700';
+    headerTitle.textContent = 'Horario — ' + (sede.nombre || 'Sede ' + (i + 1));
+    var chevron = document.createElement('span');
+    chevron.className = 'text-gray-400 text-xs';
+    chevron.textContent = '\u25BC';
+    header.appendChild(headerTitle);
+    header.appendChild(chevron);
+    header.addEventListener('click', function() { toggleAccordion(accId); });
+    section.appendChild(header);
+
+    var content = document.createElement('div');
+    content.id = accId;
+    content.className = 'accordion-content open px-4 pb-4 pt-3 space-y-2';
+
+    DIAS.forEach(function(dia, di) {
+      var dayData = sede.horario[dia];
+      if (!dayData) { dayData = { apertura: '', cierre: '', cerrado: false }; sede.horario[dia] = dayData; }
+
+      var row = document.createElement('div');
+      row.className = 'flex items-center gap-3';
+
+      var dayLbl = document.createElement('span');
+      dayLbl.className = 'text-sm text-gray-600 w-24 flex-shrink-0';
+      dayLbl.textContent = DIAS_LABEL[di];
+      row.appendChild(dayLbl);
+
+      var iApertura = document.createElement('input');
+      iApertura.type = 'time';
+      iApertura.className = 'border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-indigo-500';
+      iApertura.value = dayData.apertura || '';
+      if (dayData.cerrado) { iApertura.disabled = true; iApertura.classList.add('opacity-50'); }
+      iApertura.addEventListener('change', function() { dayData.apertura = iApertura.value; });
+
+      var sep = document.createElement('span');
+      sep.className = 'text-gray-400 text-sm';
+      sep.textContent = '\u2014';
+
+      var iCierre = document.createElement('input');
+      iCierre.type = 'time';
+      iCierre.className = 'border border-gray-300 rounded px-2 py-1 text-sm focus:ring-2 focus:ring-indigo-500';
+      iCierre.value = dayData.cierre || '';
+      if (dayData.cerrado) { iCierre.disabled = true; iCierre.classList.add('opacity-50'); }
+      iCierre.addEventListener('change', function() { dayData.cierre = iCierre.value; });
+
+      var cerradoLbl = document.createElement('label');
+      cerradoLbl.className = 'flex items-center gap-1 text-sm text-gray-500 cursor-pointer ml-2';
+      var cbCerrado = document.createElement('input');
+      cbCerrado.type = 'checkbox';
+      cbCerrado.className = 'rounded border-gray-300';
+      cbCerrado.checked = !!dayData.cerrado;
+      cbCerrado.addEventListener('change', function() {
+        dayData.cerrado = cbCerrado.checked;
+        iApertura.disabled = dayData.cerrado;
+        iCierre.disabled = dayData.cerrado;
+        iApertura.classList.toggle('opacity-50', dayData.cerrado);
+        iCierre.classList.toggle('opacity-50', dayData.cerrado);
+      });
+      var cerradoSpan = document.createElement('span');
+      cerradoSpan.textContent = 'Cerrado';
+      cerradoLbl.appendChild(cbCerrado);
+      cerradoLbl.appendChild(cerradoSpan);
+
+      row.appendChild(iApertura);
+      row.appendChild(sep);
+      row.appendChild(iCierre);
+      row.appendChild(cerradoLbl);
+      content.appendChild(row);
+    });
+
+    section.appendChild(content);
+    c.appendChild(section);
+  });
+}
+
+// ============================================================
+// STEP 7 - TARIFAS
+// ============================================================
+
+function renderStep7() {
+  var c = document.getElementById('step7-content');
+  c.textContent = '';
+
+  if (state.tarifas.length === 0) {
+    var emptyMsg = document.createElement('p');
+    emptyMsg.className = 'text-sm text-gray-400 italic mb-4';
+    emptyMsg.textContent = 'No hay tarifas. Pulsa el boton para agregar.';
+    c.appendChild(emptyMsg);
+  }
+
+  state.tarifas.forEach(function(tarifa, i) {
+    var card = document.createElement('div');
+    card.className = 'repeat-item bg-gray-50 rounded-lg p-4 mb-4 space-y-3';
+
+    var header = document.createElement('div');
+    header.className = 'flex justify-between items-center mb-1';
+    var lbl = document.createElement('span');
+    lbl.className = 'text-sm font-semibold text-indigo-700';
+    lbl.textContent = 'Tarifa ' + (i + 1);
+    header.appendChild(lbl);
+    var btnDel = makeBtn('Eliminar', 'text-xs text-red-500 hover:text-red-700', function() {
+      state.tarifas.splice(i, 1);
+      renderStep7();
+    });
+    header.appendChild(btnDel);
+    card.appendChild(header);
+
+    var iNombre = makeInput(null, 'text', 'Ej: Mensualidad estandar', true, { maxlength: '100' });
+    bindStateInput(iNombre, tarifa, 'nombre');
+    card.appendChild(makeRow('Nombre *', iNombre));
+
+    var gridPrecio = document.createElement('div');
+    gridPrecio.className = 'grid grid-cols-2 gap-3';
+
+    var iPrecio = makeInput(null, 'number', '0.00', true, { min: '0.01', step: '0.01' });
+    iPrecio.value = tarifa.precio || '';
+    iPrecio.addEventListener('input', function() { tarifa.precio = parseFloat(iPrecio.value) || 0; });
+    gridPrecio.appendChild(makeRow('Precio *', iPrecio));
+
+    var monedaWrapper = document.createElement('div');
+    var monedaLbl = document.createElement('label');
+    monedaLbl.className = 'block text-sm font-medium text-gray-700 mb-1';
+    monedaLbl.textContent = 'Moneda *';
+    monedaWrapper.appendChild(monedaLbl);
+    var selMoneda = document.createElement('select');
+    selMoneda.className = INPUT_CLS;
+    selMoneda.required = true;
+    ['EUR','USD','GBP','MXN','CLP','ARS','COP','PEN','BRL'].forEach(function(m) {
+      var opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = m;
+      selMoneda.appendChild(opt);
+    });
+    selMoneda.value = tarifa.moneda || 'EUR';
+    selMoneda.addEventListener('change', function() { tarifa.moneda = selMoneda.value; });
+    monedaWrapper.appendChild(selMoneda);
+    gridPrecio.appendChild(monedaWrapper);
+
+    card.appendChild(gridPrecio);
+
+    var perRow = document.createElement('div');
+    var perLbl = document.createElement('label');
+    perLbl.className = 'block text-sm font-medium text-gray-700 mb-1';
+    perLbl.textContent = 'Periodicidad *';
+    perRow.appendChild(perLbl);
+    var perRadios = document.createElement('div');
+    perRadios.className = 'flex gap-4';
+
+    ['mensual', 'anual'].forEach(function(tipo) {
+      var lbl2 = document.createElement('label');
+      lbl2.className = 'flex items-center gap-1 text-sm text-gray-700 cursor-pointer';
+      var rb = document.createElement('input');
+      rb.type = 'radio';
+      rb.name = 'periodicidad_' + i;
+      rb.value = tipo;
+      rb.checked = tarifa.periodicidad === tipo;
+      rb.addEventListener('change', function() { if (rb.checked) { tarifa.periodicidad = tipo; } });
+      var span = document.createElement('span');
+      span.textContent = tipo.charAt(0).toUpperCase() + tipo.slice(1);
+      lbl2.appendChild(rb);
+      lbl2.appendChild(span);
+      perRadios.appendChild(lbl2);
+    });
+
+    perRow.appendChild(perRadios);
+    card.appendChild(perRow);
+
+    c.appendChild(card);
+  });
+
+  if (state.tarifas.length < LIMITS.tarifas) {
+    var btnAdd = makeBtn('+ Anadir tarifa', 'mt-2 px-4 py-2 border border-indigo-400 text-indigo-600 rounded-lg text-sm hover:bg-indigo-50', function() {
+      addTarifa();
+    });
+    c.appendChild(btnAdd);
+  }
+}
+
+function addTarifa() {
+  state.tarifas.push({ id: 'tar_' + Date.now(), nombre: '', precio: 0, moneda: 'EUR', periodicidad: 'mensual' });
+  renderStep7();
+}
+
+// ============================================================
+// STEP 8 - URLs / PROCESOS
+// ============================================================
+
+function renderStep8() {
+  var c = document.getElementById('step8-content');
+  c.textContent = '';
+
+  var urlHeader = document.createElement('h3');
+  urlHeader.className = 'text-sm font-semibold text-gray-700 mb-3';
+  urlHeader.textContent = 'URLs de formularios';
+  c.appendChild(urlHeader);
+
+  var urlList = document.createElement('div');
+  urlList.className = 'space-y-2 mb-3';
+  state.urls.forEach(function(url, i) {
+    var row = document.createElement('div');
+    row.className = 'flex items-center gap-2';
+    var iUrl = makeInput(null, 'url', 'https://...', false, { 'data-validate': 'url' });
+    iUrl.className = INPUT_CLS;
+    iUrl.value = url;
+    iUrl.addEventListener('input', function() { state.urls[i] = iUrl.value; });
+    var btnDel = makeBtn('\u2715', 'text-gray-400 hover:text-red-500 text-sm flex-shrink-0', function() {
+      state.urls.splice(i, 1);
+      renderStep8();
+    });
+    row.appendChild(iUrl);
+    row.appendChild(btnDel);
+    urlList.appendChild(row);
+  });
+  c.appendChild(urlList);
+
+  if (state.urls.length < LIMITS.urls) {
+    var btnAddUrl = makeBtn('+ Anadir URL', 'px-4 py-2 border border-indigo-400 text-indigo-600 rounded-lg text-sm hover:bg-indigo-50', function() {
+      addUrl();
+    });
+    c.appendChild(btnAddUrl);
+  }
+
+  var hr = document.createElement('hr');
+  hr.className = 'my-5 border-gray-200';
+  c.appendChild(hr);
+
+  var procHeader = document.createElement('h3');
+  procHeader.className = 'text-sm font-semibold text-gray-700 mb-3';
+  procHeader.textContent = 'Procesos comerciales';
+  c.appendChild(procHeader);
+
+  state.procesos_comerciales.forEach(function(proc, i) {
+    var card = document.createElement('div');
+    card.className = 'repeat-item bg-gray-50 rounded-lg p-4 mb-3';
+
+    var header = document.createElement('div');
+    header.className = 'flex justify-between items-center mb-2';
+    var idSpan = document.createElement('span');
+    idSpan.className = 'text-xs font-mono font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded';
+    idSpan.textContent = proc.id;
+    header.appendChild(idSpan);
+    var btnDel = makeBtn('Eliminar', 'text-xs text-red-500 hover:text-red-700', function() {
+      state.procesos_comerciales.splice(i, 1);
+      renderStep8();
+    });
+    header.appendChild(btnDel);
+    card.appendChild(header);
+
+    var descWrap = document.createElement('div');
+    var descLbl = document.createElement('label');
+    descLbl.className = 'block text-sm font-medium text-gray-700 mb-1';
+    descLbl.textContent = 'Descripcion';
+    descWrap.appendChild(descLbl);
+    var ta = document.createElement('textarea');
+    ta.className = INPUT_CLS + ' resize-y';
+    ta.rows = 3;
+    ta.placeholder = 'Describe el proceso comercial...';
+    ta.value = proc.descripcion || '';
+    ta.addEventListener('input', function() { proc.descripcion = ta.value; });
+    descWrap.appendChild(ta);
+    card.appendChild(descWrap);
+
+    c.appendChild(card);
+  });
+
+  if (state.procesos_comerciales.length < LIMITS.procesos) {
+    var btnAddProc = makeBtn('+ Anadir proceso', 'mt-2 px-4 py-2 border border-indigo-400 text-indigo-600 rounded-lg text-sm hover:bg-indigo-50', function() {
+      addProceso();
+    });
+    c.appendChild(btnAddProc);
+  }
+}
+
+function addUrl() {
+  state.urls.push('');
+  renderStep8();
+}
+
+function addProceso() {
+  state.procesos_comerciales.push({
+    id: 'CD' + (state.procesos_comerciales.length + 1),
+    descripcion: ''
+  });
+  renderStep8();
+}
+
+// ============================================================
+// STEP 9 - KPIs / RESUMEN
+// ============================================================
+
+function renderStep9() {
+  var c = document.getElementById('step9-content');
+  c.textContent = '';
+
+  var kpiHeader = document.createElement('h3');
+  kpiHeader.className = 'text-sm font-semibold text-gray-700 mb-3';
+  kpiHeader.textContent = 'Documentos KPI';
+  c.appendChild(kpiHeader);
+
+  if (state.kpis.length > 0) {
+    var fileList = document.createElement('div');
+    fileList.className = 'space-y-2 mb-3';
+    state.kpis.forEach(function(kpi, i) {
+      var row = document.createElement('div');
+      row.className = 'flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm';
+      var info = document.createElement('div');
+      info.className = 'flex flex-col';
+      var nameSpan = document.createElement('span');
+      nameSpan.className = 'font-medium text-gray-700';
+      nameSpan.textContent = kpi.nombre;
+      var typeSpan = document.createElement('span');
+      typeSpan.className = 'text-xs text-gray-400';
+      typeSpan.textContent = kpi.tipo;
+      info.appendChild(nameSpan);
+      info.appendChild(typeSpan);
+      var btnDel = makeBtn('\u2715', 'text-gray-400 hover:text-red-500 text-sm', function() {
+        state.kpis.splice(i, 1);
+        renderStep9();
+      });
+      row.appendChild(info);
+      row.appendChild(btnDel);
+      fileList.appendChild(row);
+    });
+    c.appendChild(fileList);
+  }
+
+  if (state.kpis.length < LIMITS.kpis) {
+    var dropZone = document.createElement('div');
+    dropZone.className = 'border-dashed border-2 border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:bg-gray-50 mb-4';
+    var dropText = document.createElement('p');
+    dropText.className = 'text-sm text-gray-500';
+    dropText.textContent = 'Arrastra archivos aqui o haz clic';
+    var dropHint = document.createElement('p');
+    dropHint.className = 'text-xs text-gray-400 mt-1';
+    dropHint.textContent = 'PDF, XLSX, XLS, CSV — max 5 MB c/u — hasta ' + LIMITS.kpis + ' archivos';
+    dropZone.appendChild(dropText);
+    dropZone.appendChild(dropHint);
+
+    var fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.pdf,.xlsx,.xls,.csv';
+    fileInput.multiple = true;
+    fileInput.style.display = 'none';
+    fileInput.addEventListener('change', function() {
+      if (fileInput.files && fileInput.files.length > 0) {
+        handleFiles(fileInput.files);
+      }
+    });
+    dropZone.appendChild(fileInput);
+
+    dropZone.addEventListener('click', function() { fileInput.click(); });
+    dropZone.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      dropZone.classList.add('drag-over');
+    });
+    dropZone.addEventListener('dragleave', function() {
+      dropZone.classList.remove('drag-over');
+    });
+    dropZone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        handleFiles(e.dataTransfer.files);
+      }
+    });
+
+    c.appendChild(dropZone);
+  }
+
+  var hr = document.createElement('hr');
+  hr.className = 'my-5 border-gray-200';
+  c.appendChild(hr);
+
+  var sumHeader = document.createElement('h3');
+  sumHeader.className = 'text-sm font-semibold text-gray-700 mb-3';
+  sumHeader.textContent = 'Resumen';
+  c.appendChild(sumHeader);
+
+  var sumCard = document.createElement('div');
+  sumCard.className = 'bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-2 text-sm text-gray-700';
+
+  function sumRow(label, value) {
+    var row = document.createElement('div');
+    row.className = 'flex justify-between';
+    var lbl = document.createElement('span');
+    lbl.className = 'text-gray-500';
+    lbl.textContent = label;
+    var val = document.createElement('span');
+    val.className = 'font-medium';
+    val.textContent = value;
+    row.appendChild(lbl);
+    row.appendChild(val);
+    return row;
+  }
+
+  var sedeNames = state.sedes.map(function(s) { return s.nombre || 'Sin nombre'; }).join(', ');
+  sumCard.appendChild(sumRow('Empresa', state.empresa.nombre_fiscal || '\u2014'));
+  sumCard.appendChild(sumRow('Email', state.empresa.email || '\u2014'));
+  sumCard.appendChild(sumRow('Sedes (' + state.sedes.length + ')', sedeNames || '\u2014'));
+  sumCard.appendChild(sumRow('Empleados', state.empleados.length + ''));
+  sumCard.appendChild(sumRow('Tarifas', state.tarifas.length + ''));
+  sumCard.appendChild(sumRow('URLs', state.urls.length + ''));
+  sumCard.appendChild(sumRow('Procesos comerciales', state.procesos_comerciales.length + ''));
+  sumCard.appendChild(sumRow('Documentos KPI', state.kpis.length + ''));
+
+  c.appendChild(sumCard);
+}
+
+function handleFiles(files) {
+  var ALLOWED_EXT = ['pdf', 'xlsx', 'xls', 'csv'];
+  var MAX_SIZE = 5 * 1024 * 1024;
+
+  Array.prototype.forEach.call(files, function(file) {
+    if (state.kpis.length >= LIMITS.kpis) return;
+
+    var ext = file.name.split('.').pop().toLowerCase();
+    if (ALLOWED_EXT.indexOf(ext) === -1) {
+      alert('Archivo no permitido: ' + file.name + '. Solo PDF, XLSX, XLS y CSV.');
+      return;
+    }
+    if (file.size > MAX_SIZE) {
+      alert('El archivo "' + file.name + '" supera el limite de 5 MB.');
+      return;
+    }
+
+    var reader = new FileReader();
+    reader.onload = function() {
+      state.kpis.push({ nombre: file.name, tipo: file.type, base64: reader.result });
+      renderStep9();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ============================================================
+// SUBMIT - Envia al server y muestra mensaje simple
+// ============================================================
+
+function submitForm() {
+  var btnSubmit = document.getElementById("btn-next");
+  btnSubmit.disabled = true;
+  btnSubmit.textContent = "Enviando...";
+
+  var modal = document.getElementById("progress-modal");
+  var resultEl = document.getElementById("progress-result");
+  var closeEl = document.getElementById("progress-close");
+  var titleEl = document.getElementById("progress-title");
+  var subtitleEl = document.getElementById("progress-subtitle");
+  var logEl = document.getElementById("progress-log");
+
+  if (logEl) logEl.style.display = "none";
+  resultEl.innerHTML = "";
+  resultEl.classList.remove("hidden");
+  closeEl.classList.add("hidden");
+  titleEl.textContent = "Enviando solicitud...";
+  subtitleEl.textContent = "";
+  resultEl.innerHTML = '<div class="flex items-center justify-center py-8"><div class="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div></div>';
+  modal.classList.remove("hidden");
+
+  // Preparar payload
+  var payload = JSON.parse(JSON.stringify(state));
+  if (payload.kpis && Array.isArray(payload.kpis)) {
+    payload.kpis.forEach(function(k) { if (k.base64) delete k.base64; });
+  }
+
+  fetch("/api/onboarding", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+  .then(function(res) { return res.json(); })
+  .then(function(data) {
+    closeEl.classList.remove("hidden");
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = "Enviar";
+
+    if (data.success) {
+      localStorage.removeItem(STORAGE_KEY);
+      titleEl.textContent = "Sub-cuenta creada";
+      subtitleEl.textContent = "";
+      resultEl.innerHTML = '<div class="bg-green-50 border border-green-200 rounded-lg p-6 text-center">'
+        + '<div class="text-5xl text-green-500 mb-3">&#10003;</div>'
+        + '<p class="text-base font-semibold text-green-800 mb-2">Sub-cuenta creada</p>'
+        + '<p class="text-sm text-green-700">Ya te estaremos enviando las credenciales por email.</p>'
+        + '</div>';
+    } else {
+      titleEl.textContent = "Error";
+      resultEl.innerHTML = '<div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">'
+        + '<div class="text-5xl text-red-500 mb-3">&#10007;</div>'
+        + '<p class="text-sm font-semibold text-red-800">' + (data.message || "Ocurrio un error al procesar tu solicitud.") + '</p>'
+        + '</div>';
+    }
+  })
+  .catch(function() {
+    closeEl.classList.remove("hidden");
+    btnSubmit.disabled = false;
+    btnSubmit.textContent = "Enviar";
+    titleEl.textContent = "Error de conexion";
+    resultEl.innerHTML = '<div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">'
+      + '<div class="text-5xl text-red-500 mb-3">&#10007;</div>'
+      + '<p class="text-sm font-semibold text-red-800">No se pudo conectar con el servidor. Intenta mas tarde.</p>'
+      + '</div>';
+  });
+}
+
+document.getElementById("progress-close").addEventListener("click", function() {
+  document.getElementById("progress-modal").classList.add("hidden");
+});
+
+// ============================================================
+// PRECARGA DE DATOS DE PRUEBA
+// ============================================================
+
+document.getElementById("btn-preload").addEventListener("click", function() {
+  localStorage.removeItem(STORAGE_KEY);
+
+  state.empresa = {
+    nombre_fiscal: "Gym Fitness Pro SL",
+    email: "info@gymfitnesspro.com",
+    direccion: "Calle Gran Via 45, Planta 2",
+    ciudad: "Madrid",
+    telefono: "+34612345678",
+    pais: "ES",
+    codigo_postal: "28013",
+    identificador_fiscal: "B12345678"
+  };
+
+  sedeCounter = 3;
+  state.sedes = [
+    {
+      id: "sede_1", nombre: "Sede Centro",
+      servicios: { fitness: true, actividades_dirigidas: true, adicionales: ["Pilates", "Yoga"] },
+      horario: {
+        lunes: { apertura: "07:00", cierre: "22:00", cerrado: false },
+        martes: { apertura: "07:00", cierre: "22:00", cerrado: false },
+        miercoles: { apertura: "07:00", cierre: "22:00", cerrado: false },
+        jueves: { apertura: "07:00", cierre: "22:00", cerrado: false },
+        viernes: { apertura: "07:00", cierre: "21:00", cerrado: false },
+        sabado: { apertura: "09:00", cierre: "14:00", cerrado: false },
+        domingo: { apertura: "", cierre: "", cerrado: true }
+      }
+    },
+    {
+      id: "sede_2", nombre: "Sede Norte",
+      servicios: { fitness: true, actividades_dirigidas: false, adicionales: ["CrossFit"] },
+      horario: {
+        lunes: { apertura: "08:00", cierre: "21:00", cerrado: false },
+        martes: { apertura: "08:00", cierre: "21:00", cerrado: false },
+        miercoles: { apertura: "08:00", cierre: "21:00", cerrado: false },
+        jueves: { apertura: "08:00", cierre: "21:00", cerrado: false },
+        viernes: { apertura: "08:00", cierre: "20:00", cerrado: false },
+        sabado: { apertura: "09:00", cierre: "14:00", cerrado: false },
+        domingo: { apertura: "", cierre: "", cerrado: true }
+      }
+    }
+  ];
+
+  state.empleados = [
+    {
+      id: "emp_1", nombre: "Carlos", apellido: "Garcia", email: "carlos@gymfitnesspro.com",
+      telefono: "+34611111111", pais: "ES", cargo: "Entrenador Personal", sede_id: "sede_1",
+      horario: { tipo: "franjas", fijo: "", franjas: {
+        lunes: [{ inicio: "09:00", fin: "14:00" }, { inicio: "16:00", fin: "20:00" }],
+        martes: [{ inicio: "09:00", fin: "14:00" }, { inicio: "16:00", fin: "20:00" }],
+        miercoles: [{ inicio: "09:00", fin: "14:00" }],
+        jueves: [{ inicio: "09:00", fin: "14:00" }, { inicio: "16:00", fin: "20:00" }],
+        viernes: [{ inicio: "09:00", fin: "14:00" }],
+        sabado: [], domingo: []
+      }}
+    },
+    {
+      id: "emp_2", nombre: "Maria", apellido: "Lopez", email: "maria@gymfitnesspro.com",
+      telefono: "+34622222222", pais: "ES", cargo: "Instructora Actividades", sede_id: "sede_1",
+      horario: { tipo: "fijo", fijo: "Lunes a Viernes 8:00-15:00", franjas: {} }
+    },
+    {
+      id: "emp_3", nombre: "Pedro", apellido: "Martinez", email: "pedro@gymfitnesspro.com",
+      telefono: "+34633333333", pais: "ES", cargo: "Entrenador CrossFit", sede_id: "sede_2",
+      horario: { tipo: "franjas", fijo: "", franjas: {
+        lunes: [{ inicio: "08:00", fin: "13:00" }, { inicio: "17:00", fin: "21:00" }],
+        martes: [{ inicio: "08:00", fin: "13:00" }, { inicio: "17:00", fin: "21:00" }],
+        miercoles: [{ inicio: "08:00", fin: "13:00" }],
+        jueves: [{ inicio: "08:00", fin: "13:00" }, { inicio: "17:00", fin: "21:00" }],
+        viernes: [{ inicio: "08:00", fin: "13:00" }],
+        sabado: [{ inicio: "09:00", fin: "14:00" }], domingo: []
+      }}
+    }
+  ];
+
+  state.tarifas = [
+    { id: "tar_1", nombre: "Mensual Basica", precio: 39.99, moneda: "EUR", periodicidad: "mensual" },
+    { id: "tar_2", nombre: "Mensual Premium", precio: 59.99, moneda: "EUR", periodicidad: "mensual" },
+    { id: "tar_3", nombre: "Anual Premium", precio: 499.99, moneda: "EUR", periodicidad: "anual" }
+  ];
+
+  state.urls = ["https://gymfitnesspro.com/registro", "https://gymfitnesspro.com/contacto"];
+
+  state.procesos_comerciales = [
+    { id: "CD1", descripcion: "Lead entra por formulario web -> se asigna a comercial -> llamada en 24h -> visita guiada -> cierre" },
+    { id: "CD2", descripcion: "Lead entra por Instagram -> DM automatico -> agendar cita -> tour presencial -> oferta" }
+  ];
+
+  state.kpis = [];
+
+  // Forzar re-render del paso actual
+  var step1 = document.getElementById("step1-content");
+  if (step1) { step1.dataset.rendered = ""; step1.textContent = ""; }
+  showStep(currentStep);
+
+  alert("Datos de prueba cargados. Navega los 9 pasos para verificarlos.");
+});
+
+// ============================================================
+// INIT
+// ============================================================
+
+function init() {
+  restoreFromStorage();
+  showStep(currentStep);
+}
+
+init();
+</script>
+</body>
+</html>

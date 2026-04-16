@@ -1,0 +1,23 @@
+{
+  "name": "ghl-gym-onboarding",
+  "version": "1.0.0",
+  "description": "GHL Gym Onboarding Server - Crea sub-cuentas desde un form web",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "mcp": "node index.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.28.0",
+    "axios": "^1.14.0",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "docx": "^9.6.1",
+    "pdfkit": "^0.18.0",
+    "xlsx": "^0.18.5"
+  }
+}

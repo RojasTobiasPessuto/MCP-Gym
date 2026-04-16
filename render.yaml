@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: gym-onboarding
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/status
+    envVars:
+      - key: USE_ENV_SECRETS
+        value: "true"
+      # Los secretos se configuran desde el dashboard de Render, NO aqui.
+      # Variables requeridas (ver .env.example):
+      #   GHL_COMPANY_ID
+      #   GHL_SNAPSHOT_ID
+      #   GHL_OAUTH_CLIENT_ID / GHL_OAUTH_CLIENT_SECRET / GHL_OAUTH_REDIRECT_URI
+      #   GHL_OAUTH_ACCESS_TOKEN / GHL_OAUTH_REFRESH_TOKEN / GHL_OAUTH_TOKEN_EXPIRES_AT
+      #   GHL_OAUTH_SUBACCOUNT_CLIENT_ID / _CLIENT_SECRET / _APP_ID
+      #   GHL_OAUTH_SUBACCOUNT_BRIDGE_ACCESS_TOKEN / _REFRESH_TOKEN

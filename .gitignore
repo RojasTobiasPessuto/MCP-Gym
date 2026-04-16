@@ -1,0 +1,33 @@
+# Secrets — NUNCA commitear
+secrets.json
+.env
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# Tokens y credenciales
+oauth_tokens.json
+ghl_credentials.json
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Logs y temporales
+*.log
+server.log
+*.tmp
+_update*.js
+_revertForm*.js
+
+# Datos de prueba con datos reales
+test_data_real.json
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
