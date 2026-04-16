@@ -41,7 +41,6 @@
   <div class="text-center mb-8">
     <h1 class="text-2xl font-bold text-gray-800">Onboarding GHL</h1>
     <p class="text-gray-500 mt-1">Trainingym</p>
-    <button type="button" id="btn-preload" class="mt-3 px-4 py-1.5 bg-amber-500 text-white text-xs rounded-lg hover:bg-amber-600">Cargar datos de prueba</button>
   </div>
 
   <div class="mb-8">
@@ -1531,109 +1530,6 @@ function submitForm() {
 
 document.getElementById("progress-close").addEventListener("click", function() {
   document.getElementById("progress-modal").classList.add("hidden");
-});
-
-// ============================================================
-// PRECARGA DE DATOS DE PRUEBA
-// ============================================================
-
-document.getElementById("btn-preload").addEventListener("click", function() {
-  localStorage.removeItem(STORAGE_KEY);
-
-  state.empresa = {
-    nombre_fiscal: "Gym Fitness Pro SL",
-    email: "info@gymfitnesspro.com",
-    direccion: "Calle Gran Via 45, Planta 2",
-    ciudad: "Madrid",
-    telefono: "+34612345678",
-    pais: "ES",
-    codigo_postal: "28013",
-    identificador_fiscal: "B12345678"
-  };
-
-  sedeCounter = 3;
-  state.sedes = [
-    {
-      id: "sede_1", nombre: "Sede Centro",
-      servicios: { fitness: true, actividades_dirigidas: true, adicionales: ["Pilates", "Yoga"] },
-      horario: {
-        lunes: { apertura: "07:00", cierre: "22:00", cerrado: false },
-        martes: { apertura: "07:00", cierre: "22:00", cerrado: false },
-        miercoles: { apertura: "07:00", cierre: "22:00", cerrado: false },
-        jueves: { apertura: "07:00", cierre: "22:00", cerrado: false },
-        viernes: { apertura: "07:00", cierre: "21:00", cerrado: false },
-        sabado: { apertura: "09:00", cierre: "14:00", cerrado: false },
-        domingo: { apertura: "", cierre: "", cerrado: true }
-      }
-    },
-    {
-      id: "sede_2", nombre: "Sede Norte",
-      servicios: { fitness: true, actividades_dirigidas: false, adicionales: ["CrossFit"] },
-      horario: {
-        lunes: { apertura: "08:00", cierre: "21:00", cerrado: false },
-        martes: { apertura: "08:00", cierre: "21:00", cerrado: false },
-        miercoles: { apertura: "08:00", cierre: "21:00", cerrado: false },
-        jueves: { apertura: "08:00", cierre: "21:00", cerrado: false },
-        viernes: { apertura: "08:00", cierre: "20:00", cerrado: false },
-        sabado: { apertura: "09:00", cierre: "14:00", cerrado: false },
-        domingo: { apertura: "", cierre: "", cerrado: true }
-      }
-    }
-  ];
-
-  state.empleados = [
-    {
-      id: "emp_1", nombre: "Carlos", apellido: "Garcia", email: "carlos@gymfitnesspro.com",
-      telefono: "+34611111111", pais: "ES", cargo: "Entrenador Personal", sede_id: "sede_1",
-      horario: { tipo: "franjas", fijo: "", franjas: {
-        lunes: [{ inicio: "09:00", fin: "14:00" }, { inicio: "16:00", fin: "20:00" }],
-        martes: [{ inicio: "09:00", fin: "14:00" }, { inicio: "16:00", fin: "20:00" }],
-        miercoles: [{ inicio: "09:00", fin: "14:00" }],
-        jueves: [{ inicio: "09:00", fin: "14:00" }, { inicio: "16:00", fin: "20:00" }],
-        viernes: [{ inicio: "09:00", fin: "14:00" }],
-        sabado: [], domingo: []
-      }}
-    },
-    {
-      id: "emp_2", nombre: "Maria", apellido: "Lopez", email: "maria@gymfitnesspro.com",
-      telefono: "+34622222222", pais: "ES", cargo: "Instructora Actividades", sede_id: "sede_1",
-      horario: { tipo: "fijo", fijo: "Lunes a Viernes 8:00-15:00", franjas: {} }
-    },
-    {
-      id: "emp_3", nombre: "Pedro", apellido: "Martinez", email: "pedro@gymfitnesspro.com",
-      telefono: "+34633333333", pais: "ES", cargo: "Entrenador CrossFit", sede_id: "sede_2",
-      horario: { tipo: "franjas", fijo: "", franjas: {
-        lunes: [{ inicio: "08:00", fin: "13:00" }, { inicio: "17:00", fin: "21:00" }],
-        martes: [{ inicio: "08:00", fin: "13:00" }, { inicio: "17:00", fin: "21:00" }],
-        miercoles: [{ inicio: "08:00", fin: "13:00" }],
-        jueves: [{ inicio: "08:00", fin: "13:00" }, { inicio: "17:00", fin: "21:00" }],
-        viernes: [{ inicio: "08:00", fin: "13:00" }],
-        sabado: [{ inicio: "09:00", fin: "14:00" }], domingo: []
-      }}
-    }
-  ];
-
-  state.tarifas = [
-    { id: "tar_1", nombre: "Mensual Basica", precio: 39.99, moneda: "EUR", periodicidad: "mensual" },
-    { id: "tar_2", nombre: "Mensual Premium", precio: 59.99, moneda: "EUR", periodicidad: "mensual" },
-    { id: "tar_3", nombre: "Anual Premium", precio: 499.99, moneda: "EUR", periodicidad: "anual" }
-  ];
-
-  state.urls = ["https://gymfitnesspro.com/registro", "https://gymfitnesspro.com/contacto"];
-
-  state.procesos_comerciales = [
-    { id: "CD1", descripcion: "Lead entra por formulario web -> se asigna a comercial -> llamada en 24h -> visita guiada -> cierre" },
-    { id: "CD2", descripcion: "Lead entra por Instagram -> DM automatico -> agendar cita -> tour presencial -> oferta" }
-  ];
-
-  state.kpis = [];
-
-  // Forzar re-render del paso actual
-  var step1 = document.getElementById("step1-content");
-  if (step1) { step1.dataset.rendered = ""; step1.textContent = ""; }
-  showStep(currentStep);
-
-  alert("Datos de prueba cargados. Navega los 9 pasos para verificarlos.");
 });
 
 // ============================================================
