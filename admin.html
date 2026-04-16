@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - GHL Gym Onboarding</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  .log-line { font-family: monospace; font-size: 0.75rem; line-height: 1.25rem; }
+  .log-warn { color: #fbbf24; }
+  .log-error { color: #f87171; }
+  .log-ok { color: #34d399; }
+</style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+<div id="login" class="min-h-screen flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl shadow-lg p-8 max-w-md w-full">
+    <h1 class="text-2xl font-bold text-gray-800 mb-1">Panel Admin</h1>
+    <p class="text-sm text-gray-500 mb-6">GHL Gym Onboarding</p>
+    <form id="login-form" class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Password admin</label>
+        <input type="password" id="admin-key" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" autofocus />
+      </div>
+      <button type="submit" class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Entrar</button>
+      <p id="login-err" class="text-xs text-red-600 hidden"></p>
+    </form>
+  </div>
+</div>
+
+<div id="dashboard" class="hidden max-w-7xl mx-auto px-4 py-6">
+  <header class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Panel Admin</h1>
+      <p class="text-sm text-gray-500">GHL Gym Onboarding - <span id="total-jobs">0</span> jobs</p>
+    </div>
+    <div class="flex gap-2">
+      <button id="btn-refresh" class="px-3 py-1.5 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-100">Refrescar</button>
+      <button id="btn-logout" class="px-3 py-1.5 border border-red-300 rounded-lg text-sm text-red-700 hover:bg-red-50">Salir</button>
+    </div>
+  </header>
+
+  <div class="grid grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-lg shadow p-4">
+      <p class="text-xs text-gray-500">Total</p>
+      <p id="stat-total" class="text-2xl font-bold text-gray-800">0</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4">
+      <p class="text-xs text-gray-500">Exitosos</p>
+      <p id="stat-success" class="text-2xl font-bold text-green-600">0</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4">
+      <p class="text-xs text-gray-500">En progreso</p>
+      <p id="stat-running" class="text-2xl font-bold text-blue-600">0</p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4">
+      <p class="text-xs text-gray-500">Con errores</p>
+      <p id="stat-errors" class="text-2xl font-bold text-red-600">0</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+          <tr>
+            <th class="px-4 py-3 text-left">Fecha</th>
+            <th class="px-4 py-3 text-left">Empresa</th>
+            <th class="px-4 py-3 text-left">Email</th>
+            <th class="px-4 py-3 text-center">Sedes</th>
+            <th class="px-4 py-3 text-center">Empleados</th>
+            <th class="px-4 py-3 text-center">Tarifas</th>
+            <th class="px-4 py-3 text-left">Location ID</th>
+            <th class="px-4 py-3 text-center">Estado</th>
+            <th class="px-4 py-3 text-center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="jobs-tbody">
+          <tr><td colspan="9" class="text-center py-8 text-gray-400">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Modal detalle job -->
+<div id="detail-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
+    <div class="flex justify-between items-center p-4 border-b">
+      <div>
+        <h3 id="detail-title" class="text-lg font-bold text-gray-800">Job detalle</h3>
+        <p id="detail-subtitle" class="text-xs text-gray-500"></p>
+      </div>
+      <button id="detail-close" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+    </div>
+    <div class="p-4 overflow-y-auto flex-1">
+      <div id="detail-content"></div>
+    </div>
+    <div class="flex gap-3 p-4 border-t">
+      <button id="btn-download-csv" class="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Descargar CSV</button>
+      <button id="btn-download-json" class="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100">Descargar JSON completo</button>
+    </div>
+  </div>
+</div>
+
+<script>
+var adminKey = sessionStorage.getItem("admin_key") || "";
+var currentJobId = null;
+var autoRefreshTimer = null;
+
+function api(path, opts) {
+  opts = opts || {};
+  opts.headers = opts.headers || {};
+  opts.headers["X-Admin-Password"] = adminKey;
+  return fetch(path, opts).then(function(r) {
+    if (r.status === 401) { logout(); throw new Error("Unauthorized"); }
+    return r.json();
+  });
+}
+
+function logout() {
+  sessionStorage.removeItem("admin_key");
+  adminKey = "";
+  document.getElementById("login").classList.remove("hidden");
+  document.getElementById("dashboard").classList.add("hidden");
+  if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+}
+
+function statusBadge(status, success) {
+  if (status === "done") {
+    if (success) return '<span class="inline-block px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800">OK</span>';
+    return '<span class="inline-block px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-800">Error</span>';
+  }
+  if (status === "running") return '<span class="inline-block px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-800 animate-pulse">En proceso</span>';
+  if (status === "queued") return '<span class="inline-block px-2 py-0.5 rounded-full text-xs bg-yellow-100 text-yellow-800">En cola</span>';
+  if (status === "interrupted") return '<span class="inline-block px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-800">Interrumpido</span>';
+  return '<span class="inline-block px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-800">' + status + '</span>';
+}
+
+function formatDate(ms) {
+  if (!ms) return "-";
+  var d = new Date(ms);
+  return d.toLocaleString("es-ES", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
+
+function loadJobs() {
+  api("/api/admin/jobs").then(function(data) {
+    var tbody = document.getElementById("jobs-tbody");
+    document.getElementById("total-jobs").textContent = data.total;
+    document.getElementById("stat-total").textContent = data.total;
+
+    var success = 0, running = 0, errors = 0;
+    data.jobs.forEach(function(j) {
+      if (j.status === "done" && j.resultSuccess) success++;
+      else if (j.status === "running" || j.status === "queued") running++;
+      else if (j.status === "done" && !j.resultSuccess) errors++;
+    });
+    document.getElementById("stat-success").textContent = success;
+    document.getElementById("stat-running").textContent = running;
+    document.getElementById("stat-errors").textContent = errors;
+
+    if (data.jobs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" class="text-center py-8 text-gray-400">No hay jobs todavia</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.jobs.map(function(j) {
+      return '<tr class="border-t border-gray-200 hover:bg-gray-50">'
+        + '<td class="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">' + formatDate(j.createdAt) + '</td>'
+        + '<td class="px-4 py-3 font-medium text-gray-800">' + escapeHtml(j.empresa) + '</td>'
+        + '<td class="px-4 py-3 text-gray-600 text-xs">' + escapeHtml(j.email) + '</td>'
+        + '<td class="px-4 py-3 text-center">' + j.sedes + '</td>'
+        + '<td class="px-4 py-3 text-center">' + j.empleados + '</td>'
+        + '<td class="px-4 py-3 text-center">' + j.tarifas + '</td>'
+        + '<td class="px-4 py-3"><code class="text-xs bg-gray-100 px-1 rounded">' + (j.locationId || "-") + '</code></td>'
+        + '<td class="px-4 py-3 text-center">' + statusBadge(j.status, j.resultSuccess) + '</td>'
+        + '<td class="px-4 py-3 text-center"><button onclick="openJob(\'' + j.jobId + '\')" class="text-xs text-indigo-600 hover:underline">Ver detalle</button></td>'
+        + '</tr>';
+    }).join("");
+  }).catch(function(e) { console.error(e); });
+}
+
+function escapeHtml(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function openJob(jobId) {
+  currentJobId = jobId;
+  api("/api/admin/jobs/" + jobId).then(function(job) {
+    var modal = document.getElementById("detail-modal");
+    document.getElementById("detail-title").textContent = job.empresa;
+    var duration = job.finishedAt ? Math.round((job.finishedAt - job.createdAt) / 1000) + "s" : "-";
+    document.getElementById("detail-subtitle").textContent = "Creado: " + formatDate(job.createdAt) + " | Duracion: " + duration + " | Location: " + (job.locationId || "N/A");
+
+    var html = '<div class="grid grid-cols-2 gap-3 mb-4 text-sm">'
+      + '<div class="bg-gray-50 rounded p-3"><p class="text-xs text-gray-500">Estado</p><p class="font-medium">' + job.status + '</p></div>'
+      + '<div class="bg-gray-50 rounded p-3"><p class="text-xs text-gray-500">Sub-cuenta</p><code class="text-xs">' + (job.locationId || "-") + '</code></div>'
+      + '<div class="bg-gray-50 rounded p-3"><p class="text-xs text-gray-500">Email empresa</p><p class="font-medium text-xs">' + escapeHtml(job.email) + '</p></div>'
+      + '<div class="bg-gray-50 rounded p-3"><p class="text-xs text-gray-500">Sedes / Empleados / Tarifas</p><p class="font-medium">' + job.sedes + " / " + job.empleados + " / " + job.tarifas + '</p></div>'
+      + '</div>';
+
+    if (job.result) {
+      var bg = job.result.success ? "bg-green-50 border-green-200 text-green-800" : "bg-red-50 border-red-200 text-red-800";
+      html += '<div class="' + bg + ' border rounded-lg p-3 mb-4 text-sm">';
+      html += '<p class="font-semibold">' + (job.result.success ? "Exito" : "Error") + '</p>';
+      if (job.result.message) html += '<p class="text-xs mt-1">' + escapeHtml(job.result.message) + '</p>';
+      if (job.result.errors && job.result.errors.length > 0) {
+        html += '<details class="mt-2"><summary class="text-xs cursor-pointer">Ver ' + job.result.errors.length + ' warning(s)</summary>';
+        html += '<div class="mt-2 space-y-1 text-xs">';
+        job.result.errors.forEach(function(e) {
+          html += '<div class="bg-white rounded p-2"><strong>' + escapeHtml(e.step) + ':</strong> ' + escapeHtml(e.msg || e.message) + '</div>';
+        });
+        html += '</div></details>';
+      }
+      html += '</div>';
+    }
+
+    html += '<h4 class="text-sm font-semibold text-gray-700 mb-2">Log de ejecucion (' + (job.log || []).length + ' lineas)</h4>';
+    html += '<div class="bg-gray-900 rounded-lg p-3 max-h-96 overflow-y-auto">';
+    (job.log || []).forEach(function(line) {
+      var cls = "log-line text-green-400";
+      if (line.indexOf("WARN") !== -1) cls += " log-warn";
+      if (line.indexOf("ERROR") !== -1) cls += " log-error";
+      if (line.indexOf("finalizada") !== -1 || line.indexOf("Completado") !== -1) cls += " log-ok";
+      html += '<p class="' + cls + '">&gt; ' + escapeHtml(line) + '</p>';
+    });
+    html += '</div>';
+
+    document.getElementById("detail-content").innerHTML = html;
+    modal.classList.remove("hidden");
+  });
+}
+
+document.getElementById("detail-close").addEventListener("click", function() {
+  document.getElementById("detail-modal").classList.add("hidden");
+});
+
+document.getElementById("btn-download-csv").addEventListener("click", function() {
+  if (!currentJobId) return;
+  window.open("/api/admin/jobs/" + currentJobId + "/csv?key=" + encodeURIComponent(adminKey), "_blank");
+});
+
+document.getElementById("btn-download-json").addEventListener("click", function() {
+  if (!currentJobId) return;
+  api("/api/admin/jobs/" + currentJobId).then(function(job) {
+    var blob = new Blob([JSON.stringify(job, null, 2)], { type: "application/json" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "job-" + currentJobId + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+});
+
+document.getElementById("btn-refresh").addEventListener("click", loadJobs);
+document.getElementById("btn-logout").addEventListener("click", logout);
+
+document.getElementById("login-form").addEventListener("submit", function(e) {
+  e.preventDefault();
+  var key = document.getElementById("admin-key").value.trim();
+  if (!key) return;
+  fetch("/api/admin/jobs", { headers: { "X-Admin-Password": key } })
+    .then(function(r) {
+      if (r.ok) {
+        adminKey = key;
+        sessionStorage.setItem("admin_key", key);
+        document.getElementById("login").classList.add("hidden");
+        document.getElementById("dashboard").classList.remove("hidden");
+        loadJobs();
+        autoRefreshTimer = setInterval(loadJobs, 30000);
+      } else if (r.status === 401) {
+        document.getElementById("login-err").textContent = "Password incorrecto";
+        document.getElementById("login-err").classList.remove("hidden");
+      } else if (r.status === 503) {
+        document.getElementById("login-err").textContent = "ADMIN_PASSWORD no configurado en el servidor";
+        document.getElementById("login-err").classList.remove("hidden");
+      }
+    });
+});
+
+// Auto-login si hay key guardado
+if (adminKey) {
+  fetch("/api/admin/jobs", { headers: { "X-Admin-Password": adminKey } }).then(function(r) {
+    if (r.ok) {
+      document.getElementById("login").classList.add("hidden");
+      document.getElementById("dashboard").classList.remove("hidden");
+      loadJobs();
+      autoRefreshTimer = setInterval(loadJobs, 30000);
+    } else {
+      sessionStorage.removeItem("admin_key");
+      adminKey = "";
+    }
+  });
+}
+</script>
+</body>
+</html>

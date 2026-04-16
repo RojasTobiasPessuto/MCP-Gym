@@ -215,13 +215,77 @@ app.get("/", (req, res) => res.redirect("/form.html"));
 const MAX_CONCURRENT = 3;
 const jobQueue = [];
 let activeCount = 0;
-const jobHistory = new Map(); // Solo para consultar status post-hoc
+const jobHistory = new Map(); // En memoria + persistencia
+
+const JOBS_PATH = path.join(__dirname, "jobs.json");
+const MAX_JOBS_HISTORY = 500; // Limitar historial persistido
+
+function loadJobsFromDisk() {
+  try {
+    if (!fs.existsSync(JOBS_PATH)) return;
+    const arr = JSON.parse(fs.readFileSync(JOBS_PATH, "utf8"));
+    arr.forEach((j) => {
+      // Jobs cargados de disco no deben estar "queued" ni "running" post-reinicio
+      if (j.status !== "done") j.status = "interrupted";
+      jobHistory.set(j.jobId, j);
+    });
+    console.log(`[jobs] Cargados ${jobHistory.size} jobs del historial`);
+  } catch (err) {
+    console.error("[jobs] Error cargando historial:", err.message);
+  }
+}
+
+function saveJobsToDisk() {
+  try {
+    const arr = Array.from(jobHistory.values())
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, MAX_JOBS_HISTORY)
+      .map(serializeJobForStorage);
+    fs.writeFileSync(JOBS_PATH, JSON.stringify(arr, null, 2));
+  } catch (err) {
+    console.error("[jobs] Error guardando:", err.message);
+  }
+}
+
+function serializeJobForStorage(job) {
+  // Versión limpia sin referencias circulares ni base64 pesados
+  const cleanData = job.data ? JSON.parse(JSON.stringify(job.data)) : null;
+  if (cleanData && cleanData.kpis && Array.isArray(cleanData.kpis)) {
+    cleanData.kpis.forEach((k) => { if (k.base64) delete k.base64; });
+  }
+  return {
+    jobId: job.jobId,
+    status: job.status,
+    createdAt: job.createdAt,
+    finishedAt: job.finishedAt || null,
+    locationId: job.locationId || null,
+    empresa: (cleanData && cleanData.empresa && cleanData.empresa.nombre_fiscal) || "Desconocida",
+    email: (cleanData && cleanData.empresa && cleanData.empresa.email) || "",
+    sedes: (cleanData && cleanData.sedes || []).length,
+    empleados: (cleanData && cleanData.empleados || []).length,
+    tarifas: (cleanData && cleanData.tarifas || []).length,
+    log: job.log || [],
+    result: job.result || null,
+    data: cleanData,
+  };
+}
+
+// Debounced save (evita escribir al disco en cada log line)
+let saveTimer = null;
+function scheduleSave() {
+  if (saveTimer) return;
+  saveTimer = setTimeout(() => {
+    saveTimer = null;
+    saveJobsToDisk();
+  }, 5000);
+}
 
 function enqueueJob(data, jobId) {
   const job = { jobId, data, log: [], status: "queued", result: null, createdAt: Date.now() };
   jobHistory.set(jobId, job);
   jobQueue.push(job);
   console.log(`[queue] Job ${jobId} encolado. Cola: ${jobQueue.length}, Activos: ${activeCount}`);
+  scheduleSave();
   processQueue();
 }
 
@@ -244,6 +308,7 @@ async function runJob(job) {
   function addLog(msg) {
     console.log(`[job ${job.jobId}] ${msg}`);
     job.log.push(msg);
+    scheduleSave();
   }
 
   const { data } = job;
@@ -293,7 +358,7 @@ async function runJob(job) {
               location_id: locationId,
               message: "Sub-cuenta creada pero no se pudo configurar: " + ghlError(err),
             };
-            job.status = "done";
+            job.status = "done"; job.finishedAt = Date.now(); scheduleSave();
           }
         }
         resolve();
@@ -303,12 +368,12 @@ async function runJob(job) {
     // Si terminó via webhook antes del timeout, status ya es "done"
     if (job.status !== "done") {
       // No ocurrió el done aún (esperó los 2 min sin respuesta)
-      job.status = "done";
+      job.status = "done"; job.finishedAt = Date.now(); scheduleSave();
     }
   } catch (err) {
     addLog(`ERROR FATAL: ${ghlError(err)}`);
     job.result = { success: false, message: ghlError(err) };
-    job.status = "done";
+    job.status = "done"; job.finishedAt = Date.now(); scheduleSave();
   }
 }
 
@@ -785,16 +850,81 @@ async function configureSubaccount(locationId, data, job) {
           empleados_creados: Object.keys(userMap).length,
         },
       };
-      job.status = "done";
+      job.status = "done"; job.finishedAt = Date.now(); scheduleSave();
     }
   } catch (err) {
     addLog(`ERROR FATAL: ${ghlError(err)}`);
     if (job) {
       job.result = { success: false, location_id: locationId, message: ghlError(err), errors };
-      job.status = "done";
+      job.status = "done"; job.finishedAt = Date.now(); scheduleSave();
     }
   }
 }
+
+// ============================================================
+// ADMIN: panel de control con todos los jobs
+// ============================================================
+
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "";
+
+function checkAdminAuth(req, res) {
+  if (!ADMIN_PASSWORD) {
+    res.status(503).json({ error: "ADMIN_PASSWORD no configurado en env vars" });
+    return false;
+  }
+  const pass = req.query.key || req.headers["x-admin-password"] || (req.body && req.body.key);
+  if (pass !== ADMIN_PASSWORD) {
+    res.status(401).json({ error: "Unauthorized. Agregar ?key=XXX o header X-Admin-Password" });
+    return false;
+  }
+  return true;
+}
+
+app.get("/admin", (req, res) => {
+  res.sendFile(path.join(__dirname, "admin.html"));
+});
+
+app.get("/api/admin/jobs", (req, res) => {
+  if (!checkAdminAuth(req, res)) return;
+  const jobs = Array.from(jobHistory.values())
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .map((j) => {
+      const s = serializeJobForStorage(j);
+      return {
+        jobId: s.jobId,
+        status: s.status,
+        createdAt: s.createdAt,
+        finishedAt: s.finishedAt,
+        locationId: s.locationId,
+        empresa: s.empresa,
+        email: s.email,
+        sedes: s.sedes,
+        empleados: s.empleados,
+        tarifas: s.tarifas,
+        hasResult: !!s.result,
+        resultSuccess: s.result && s.result.success,
+        errorCount: (s.result && s.result.errors && s.result.errors.length) || 0,
+      };
+    });
+  res.json({ total: jobs.length, jobs });
+});
+
+app.get("/api/admin/jobs/:jobId", (req, res) => {
+  if (!checkAdminAuth(req, res)) return;
+  const job = jobHistory.get(req.params.jobId);
+  if (!job) return res.status(404).json({ error: "Job no encontrado" });
+  res.json(serializeJobForStorage(job));
+});
+
+app.get("/api/admin/jobs/:jobId/csv", (req, res) => {
+  if (!checkAdminAuth(req, res)) return;
+  const job = jobHistory.get(req.params.jobId);
+  if (!job || !job.data || !job.data.empresa) return res.status(404).json({ error: "No encontrado" });
+  const nombre = job.data.empresa.nombre_fiscal;
+  const csvPath = path.join(__dirname, "Base de Conocimiento", `${nombre}.csv`);
+  if (!fs.existsSync(csvPath)) return res.status(404).json({ error: "CSV no encontrado" });
+  res.download(csvPath, `${nombre}.csv`);
+});
 
 // ============================================================
 // MISC ENDPOINTS
@@ -819,6 +949,9 @@ app.get("/api/status", (req, res) => {
 // START
 // ============================================================
 
+// Cargar historial de jobs al arrancar
+loadJobsFromDisk();
+
 app.listen(PORT, () => {
   console.log("");
   console.log("===========================================");
@@ -828,8 +961,8 @@ app.listen(PORT, () => {
   console.log(`  Onboarding: http://localhost:${PORT}/api/onboarding`);
   console.log(`  Webhook:    http://localhost:${PORT}/webhooks/ghl/install`);
   console.log(`  Status:     http://localhost:${PORT}/api/status`);
+  console.log(`  Admin:      http://localhost:${PORT}/admin`);
   console.log("");
-  console.log("  Expose con: ngrok http " + PORT);
   console.log("===========================================");
   console.log("");
 });

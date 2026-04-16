@@ -10,6 +10,9 @@ secrets.json
 oauth_tokens.json
 ghl_credentials.json
 
+# Historial de jobs (datos de clientes)
+jobs.json
+
 # Node
 node_modules/
 npm-debug.log*
