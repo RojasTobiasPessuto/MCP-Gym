@@ -205,6 +205,9 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(express.static(path.join(__dirname)));
 
+// Redirect raiz al form
+app.get("/", (req, res) => res.redirect("/form.html"));
+
 // ============================================================
 // COLA DE PROCESAMIENTO (max 3 concurrentes)
 // ============================================================
