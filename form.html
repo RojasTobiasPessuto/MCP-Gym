@@ -1537,7 +1537,9 @@ document.getElementById("progress-close").addEventListener("click", function() {
 // ============================================================
 
 function init() {
-  restoreFromStorage();
+  // Siempre arrancar limpio en produccion (no preguntar por borrador)
+  try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+  state = newState();
   showStep(currentStep);
 }
 
