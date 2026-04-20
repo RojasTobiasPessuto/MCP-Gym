@@ -132,36 +132,19 @@ function ghlError(err) {
   return err.message;
 }
 
-// Axios con OAuth agency token (refresca si expiró)
+// Axios con PIT (Private Integration Token) - NO expira
+// Se usa para crear sub-cuentas y aplicar snapshots
 async function getAgencyClient() {
   const s = loadSecrets();
-  const now = Date.now();
 
-  // Si expira en menos de 5 min, refrescar
-  if (!s.GHL_OAUTH_ACCESS_TOKEN || (s.GHL_OAUTH_TOKEN_EXPIRES_AT - now) < 5 * 60 * 1000) {
-    console.log("[agency-token] Refreshing...");
-    const res = await axios.post(
-      `${BASE_URL}/oauth/token`,
-      new URLSearchParams({
-        client_id: s.GHL_OAUTH_CLIENT_ID,
-        client_secret: s.GHL_OAUTH_CLIENT_SECRET,
-        grant_type: "refresh_token",
-        refresh_token: s.GHL_OAUTH_REFRESH_TOKEN,
-        user_type: "Company",
-      }).toString(),
-      { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
-    );
-    s.GHL_OAUTH_ACCESS_TOKEN = res.data.access_token;
-    s.GHL_OAUTH_REFRESH_TOKEN = res.data.refresh_token;
-    s.GHL_OAUTH_TOKEN_EXPIRES_AT = Date.now() + res.data.expires_in * 1000;
-    saveSecrets(s);
-    console.log("[agency-token] Refreshed OK");
+  if (!s.GHL_API_KEY) {
+    throw new Error("GHL_API_KEY (PIT) no configurado en env vars");
   }
 
   return axios.create({
     baseURL: BASE_URL,
     headers: {
-      Authorization: `Bearer ${s.GHL_OAUTH_ACCESS_TOKEN}`,
+      Authorization: `Bearer ${s.GHL_API_KEY}`,
       "Content-Type": "application/json",
       Version: "2021-07-28",
     },
